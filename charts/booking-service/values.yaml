@@ -1,0 +1,24 @@
+image:
+  repository: 044302809167.dkr.ecr.us-east-1.amazonaws.com/ticket-booking/booking-service
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 3003
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+env:
+  NODE_ENV: production
+  PORT: "3003"
+  MONGO_URI: "mongodb://mongodb.default.svc.cluster.local:27017/userdb"
