@@ -56,7 +56,7 @@ spec:
         
         // SonarQube Config
         SONAR_HOST_URL = 'https://sonarcloud.io'
-        SONAR_ORG = 'test-booking-ap' // Your SonarCloud Organization Key
+        SONAR_ORG = 'test-booking-application' // Your SonarCloud Organization Key
     }
 
     stages {
@@ -92,7 +92,6 @@ spec:
             steps {
                 container('node') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                        sh 'apk add --no-cache openjdk17-jre'
                         sh """
                             npx sonar-scanner \
                             -Dsonar.projectKey=${SONAR_ORG}_${APP_NAME} \
