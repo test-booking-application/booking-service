@@ -92,6 +92,7 @@ spec:
             steps {
                 container('node') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh 'apk add --no-cache openjdk17-jre'
                         sh """
                             npx sonar-scanner \
                             -Dsonar.projectKey=${SONAR_ORG}_${APP_NAME} \
