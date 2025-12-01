@@ -110,6 +110,16 @@ spec:
             steps {
                 container('docker') {
                     script {
+                        // Start Docker daemon and wait for it to be ready
+                        sh '''
+                            dockerd-entrypoint.sh &
+                            sleep 10
+                            while ! docker info > /dev/null 2>&1; do
+                                echo "Waiting for Docker daemon to start..."
+                                sleep 2
+                            done
+                            echo "Docker daemon is ready"
+                        '''
                         sh "docker build -t ${IMAGE_URI}:${DOCKER_TAG} ."
                         sh "docker tag ${IMAGE_URI}:${DOCKER_TAG} ${IMAGE_URI}:latest"
                     }
