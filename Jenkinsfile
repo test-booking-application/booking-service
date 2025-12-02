@@ -129,13 +129,20 @@ spec:
 
         stage('Security Scan (Trivy)') {
             steps {
-                container('trivy') {
-                    // Scan for CRITICAL vulnerabilities and fail if found
-                    // Also output a report file
-                    sh "trivy image --severity CRITICAL --exit-code 1 --no-progress ${IMAGE_URI}:${DOCKER_TAG}"
-                    
-                    // Generate full report (won't fail build)
-                    sh "trivy image --severity HIGH,CRITICAL --no-progress ${IMAGE_URI}:${DOCKER_TAG} > trivy-report.txt"
+                container('docker') {
+                    script {
+                        // Install Trivy in the docker container
+                        sh '''
+                            apk add --no-cache wget
+                            wget https://github.com/aquasecurity/trivy/releases/download/v0.48.0/trivy_0.48.0_Linux-64bit.tar.gz
+                            tar zxvf trivy_0.48.0_Linux-64bit.tar.gz
+                            mv trivy /usr/local/bin/
+                        '''
+                        
+                        // Scan the local Docker image
+                        sh "trivy image --severity CRITICAL --exit-code 1 --no-progress ${IMAGE_URI}:${DOCKER_TAG}"
+                        sh "trivy image --severity HIGH,CRITICAL --no-progress ${IMAGE_URI}:${DOCKER_TAG} > trivy-report.txt"
+                    }
                 }
             }
         }
