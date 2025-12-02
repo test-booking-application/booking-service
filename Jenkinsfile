@@ -133,10 +133,11 @@ spec:
                     script {
                         // Install Trivy in the docker container
                         sh '''
-                            apk add --no-cache wget
-                            wget https://github.com/aquasecurity/trivy/releases/download/v0.48.0/trivy_0.48.0_Linux-64bit.tar.gz
-                            tar zxvf trivy_0.48.0_Linux-64bit.tar.gz
+                            apk add --no-cache wget tar
+                            wget -q https://github.com/aquasecurity/trivy/releases/download/v0.48.0/trivy_0.48.0_Linux-64bit.tar.gz
+                            tar zxf trivy_0.48.0_Linux-64bit.tar.gz
                             mv trivy /usr/local/bin/
+                            chmod +x /usr/local/bin/trivy
                         '''
                         
                         // Scan the local Docker image
