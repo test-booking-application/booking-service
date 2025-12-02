@@ -195,7 +195,7 @@ spec:
             script {
                 if (env.BRANCH_NAME == 'main') {
                     echo "🚀 Triggering CD pipeline for main branch..."
-                    build job: "${env.JOB_NAME}-cd", 
+                    build job: "/cd-pipelines/${APP_NAME}-cd", 
                           parameters: [
                               string(name: 'IMAGE_TAG', value: "${DOCKER_TAG}"),
                               string(name: 'NAMESPACE', value: 'dev')
