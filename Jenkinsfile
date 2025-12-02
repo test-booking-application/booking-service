@@ -168,9 +168,16 @@ spec:
                             // Login to ECR
                             sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}"
                             
-                            // Push images
+                            // Push specific tag (always)
                             sh "docker push ${IMAGE_URI}:${DOCKER_TAG}"
-                            sh "docker push ${IMAGE_URI}:latest"
+                            
+                            // Push 'latest' tag ONLY for main branch
+                            if (env.BRANCH_NAME == 'main') {
+                                echo "🚀 Pushing 'latest' tag for main branch"
+                                sh "docker push ${IMAGE_URI}:latest"
+                            } else {
+                                echo "⚠️ Skipping 'latest' tag push for branch: ${env.BRANCH_NAME}"
+                            }
                         }
                     }
                 }
