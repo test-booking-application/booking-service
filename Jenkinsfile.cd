@@ -1,0 +1,92 @@
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    jenkins: agent
+spec:
+  serviceAccountName: jenkins
+  containers:
+  - name: helm
+    image: alpine/helm:latest
+    command:
+    - cat
+    tty: true
+  - name: kubectl
+    image: bitnami/kubectl:latest
+    command:
+    - cat
+    tty: true
+'''
+        }
+    }
+
+    parameters {
+        string(name: 'IMAGE_TAG', description: 'Docker Image Tag to deploy (e.g. 10-58744ae)', trim: true)
+        string(name: 'NAMESPACE', defaultValue: 'dev', description: 'Kubernetes Namespace')
+    }
+
+    environment {
+        APP_NAME = 'booking-service'
+        AWS_REGION = 'us-east-1'
+        ECR_REGISTRY = '044302809167.dkr.ecr.us-east-1.amazonaws.com'
+        IMAGE_URI = "${ECR_REGISTRY}/ticket-booking/${APP_NAME}"
+    }
+
+    stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (params.IMAGE_TAG == '') {
+                        error "❌ IMAGE_TAG parameter is required"
+                    }
+                    echo "📦 Deploying ${APP_NAME}:${params.IMAGE_TAG} to ${params.NAMESPACE}"
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                container('helm') {
+                    script {
+                        echo "🚀 Deploying ${APP_NAME}:${params.IMAGE_TAG} to ${params.NAMESPACE}..."
+
+                        sh """
+                            helm upgrade --install ${APP_NAME} ./charts/${APP_NAME} \
+                            --namespace ${params.NAMESPACE} --create-namespace \
+                            --set image.repository=${IMAGE_URI} \
+                            --set image.tag=${params.IMAGE_TAG} \
+                            --wait --timeout 5m
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                container('kubectl') {
+                    script {
+                        echo "✅ Verifying deployment..."
+                        sh """
+                            kubectl get pods -n ${params.NAMESPACE} -l app=${APP_NAME}
+                            kubectl get svc -n ${params.NAMESPACE} -l app=${APP_NAME}
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ CD Pipeline succeeded! ${APP_NAME}:${params.IMAGE_TAG} is running in ${params.NAMESPACE}"
+        }
+        failure {
+            echo "❌ CD Pipeline failed."
+        }
+    }
+}
