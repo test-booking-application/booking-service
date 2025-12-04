@@ -204,7 +204,7 @@ spec:
                         git config user.name "Jenkins CI"
                         git add values.yaml
                         git commit -m "chore: Update ${APP_NAME} image to ${DOCKER_TAG}" || true
-                        git push origin main
+                        git push origin HEAD:main
                     """
                     
                     echo "✅ Image tag updated in Git. ArgoCD will deploy automatically."
