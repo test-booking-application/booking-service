@@ -206,7 +206,7 @@ spec:
                             git config user.name "Jenkins CI"
                             git add values.yaml
                             git commit -m "chore: Update ${APP_NAME} image to ${DOCKER_TAG}" || true
-                            git push https://${GH_USER}:${GH_TOKEN}@github.com/test-booking-application/${APP_NAME}.git HEAD:main
+                            git push https://\$GH_USER:\$GH_TOKEN@github.com/test-booking-application/${APP_NAME}.git HEAD:main
                         """
                     }
                     
