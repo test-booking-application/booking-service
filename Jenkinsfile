@@ -120,6 +120,14 @@ spec:
                             done
                             echo "Docker daemon is ready"
                         '''
+                        
+                        // Login to Docker Hub to avoid rate limits
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME')]) {
+                            sh '''
+                                echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin || echo "⚠️ Docker Hub login failed, continuing with unauthenticated pulls"
+                            '''
+                        }
+                        
                         sh "docker build -t ${IMAGE_URI}:${DOCKER_TAG} ."
                         sh "docker tag ${IMAGE_URI}:${DOCKER_TAG} ${IMAGE_URI}:latest"
                     }
