@@ -194,13 +194,20 @@ spec:
             echo "✅ CI Pipeline succeeded! Built and pushed ${APP_NAME}:${DOCKER_TAG}"
             script {
                 if (env.BRANCH_NAME == 'main') {
-                    echo "🚀 Triggering CD pipeline for main branch..."
-                    build job: "/cd-pipelines/${APP_NAME}-cd", 
-                          parameters: [
-                              string(name: 'IMAGE_TAG', value: "${DOCKER_TAG}"),
-                              string(name: 'NAMESPACE', value: 'dev')
-                          ],
-                          wait: false
+                    echo "🔄 Updating image tag in Git for ArgoCD..."
+                    
+                    // Update values.yaml with new image tag
+                    sh """
+                        cd charts/${APP_NAME}
+                        sed -i 's/tag: .*/tag: ${DOCKER_TAG}/' values.yaml
+                        git config user.email "jenkins@ci.local"
+                        git config user.name "Jenkins CI"
+                        git add values.yaml
+                        git commit -m "chore: Update ${APP_NAME} image to ${DOCKER_TAG}" || true
+                        git push origin main
+                    """
+                    
+                    echo "✅ Image tag updated in Git. ArgoCD will deploy automatically."
                 }
             }
         }
