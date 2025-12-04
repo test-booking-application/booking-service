@@ -210,7 +210,48 @@ spec:
                         """
                     }
                     
-                    echo "✅ Image tag updated in Git. ArgoCD will deploy automatically."
+                    echo "✅ Image tag updated in Git."
+                    echo "🚀 Triggering ArgoCD deployment..."
+                    
+                    // Trigger ArgoCD sync
+                    container('helm') {
+                        sh """
+                            # Install kubectl
+                            apk add --no-cache curl
+                            curl -LO "https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+                            chmod +x kubectl
+                            mv kubectl /usr/local/bin/
+                            
+                            # Trigger hard refresh and sync
+                            kubectl patch application ${APP_NAME} -n argocd --type merge -p '{"metadata": {"annotations": {"argocd.argoproj.io/refresh": "hard"}}}'
+                            
+                            # Wait for sync to complete (timeout 5 minutes)
+                            echo "⏳ Waiting for ArgoCD to sync..."
+                            for i in \$(seq 1 60); do
+                                SYNC_STATUS=\$(kubectl get application ${APP_NAME} -n argocd -o jsonpath='{.status.sync.status}')
+                                HEALTH_STATUS=\$(kubectl get application ${APP_NAME} -n argocd -o jsonpath='{.status.health.status}')
+                                
+                                echo "Sync: \$SYNC_STATUS | Health: \$HEALTH_STATUS"
+                                
+                                if [ "\$SYNC_STATUS" = "Synced" ] && [ "\$HEALTH_STATUS" = "Healthy" ]; then
+                                    echo "✅ ArgoCD deployment successful!"
+                                    exit 0
+                                fi
+                                
+                                if [ "\$HEALTH_STATUS" = "Degraded" ]; then
+                                    echo "❌ ArgoCD deployment failed - application is degraded"
+                                    kubectl get application ${APP_NAME} -n argocd -o yaml
+                                    exit 1
+                                fi
+                                
+                                sleep 5
+                            done
+                            
+                            echo "⚠️ Timeout waiting for ArgoCD sync"
+                            kubectl get application ${APP_NAME} -n argocd -o yaml
+                            exit 1
+                        """
+                    }
                 }
             }
         }
