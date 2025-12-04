@@ -196,16 +196,23 @@ spec:
                 if (env.BRANCH_NAME == 'main') {
                     echo "🔄 Updating image tag in Git for ArgoCD..."
                     
-                    // Update values.yaml with new image tag
-                    sh """
-                        cd charts/${APP_NAME}
-                        sed -i 's/tag: .*/tag: ${DOCKER_TAG}/' values.yaml
-                        git config user.email "jenkins@ci.local"
-                        git config user.name "Jenkins CI"
-                        git add values.yaml
-                        git commit -m "chore: Update ${APP_NAME} image to ${DOCKER_TAG}" || true
-                        git push https://\${GITHUB_TOKEN}@github.com/test-booking-application/${APP_NAME}.git HEAD:main
-                    """
+                    withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GITHUB_TOKEN', usernameVariable: 'GITHUB_USER')]) {
+                        // Update values.yaml with new image tag
+                        sh """
+                            cd charts/${APP_NAME}
+
+                            # make sure we are on a real local main branch, not detached HEAD
+                            git fetch origin
+                            git checkout -B main origin/main
+        
+                            sed -i 's/tag: .*/tag: ${DOCKER_TAG}/' values.yaml
+                            git config user.email "jenkins@ci.local"
+                            git config user.name "Jenkins CI"
+                            git add values.yaml
+                            git commit -m "chore: Update ${APP_NAME} image to ${DOCKER_TAG}" || true
+                            git push https://\${GITHUB_TOKEN}@github.com/test-booking-application/${APP_NAME}.git HEAD:main
+                        """
+                    }
                     
                     echo "✅ Image tag updated in Git. ArgoCD will deploy automatically."
                 }
