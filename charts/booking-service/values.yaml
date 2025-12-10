@@ -21,4 +21,4 @@ resources:
 env:
   NODE_ENV: production
   PORT: "3003"
-  MONGO_URI: "mongodb://mongodb.default.svc.cluster.local:27017/userdb"
+  MONGO_URI: "mongodb://mongodb.dev.svc.cluster.local:27017/userdb"
