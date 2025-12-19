@@ -25,6 +25,8 @@ Create a default fully qualified app name.
 Common labels
 */}}
 {{- define "booking-service.labels" -}}
+app: {{ include "booking-service.name" . }}
+version: {{ .Chart.AppVersion | default "v1" | quote }}
 helm.sh/chart: {{ include "booking-service.chart" . }}
 {{ include "booking-service.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
