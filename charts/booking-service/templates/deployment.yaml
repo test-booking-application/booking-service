@@ -12,7 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "booking-service.selectorLabels" . | nindent 8 }}
+        {{- include "booking-service.labels" . | nindent 8 }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
