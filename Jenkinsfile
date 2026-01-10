@@ -51,7 +51,7 @@ spec:
         // App Config
         APP_NAME = 'booking-service' // Change this per service
         AWS_REGION = 'us-east-1'
-        ECR_REGISTRY = '044302809167.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_REGISTRY = '173235558072.dkr.ecr.us-east-1.amazonaws.com'
         IMAGE_URI = "${ECR_REGISTRY}/ticket-booking/${APP_NAME}"
         
         // SonarQube Config
